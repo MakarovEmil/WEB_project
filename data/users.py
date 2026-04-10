@@ -16,9 +16,11 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     age = sqlalchemy.Column(sqlalchemy.Integer)
     email = sqlalchemy.Column(sqlalchemy.String, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
+    image_path = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     is_admin = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     total_orders_count = sqlalchemy.Column(sqlalchemy.Integer, default=0)
+    total_spent = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     orders = orm.relationship("Order", back_populates='user')
 
     def set_password(self, password):
