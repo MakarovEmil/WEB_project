@@ -1,0 +1,107 @@
+body {
+  background-color: #f5f9f5;
+}
+
+.navbar-main {
+  background-color: white;
+  border-bottom: 1px solid #e0e8e0;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.logo-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-right: 15px;
+}
+
+.brand-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2e7d32;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand-slogan {
+  font-size: 0.8rem;
+  color: #6c8b6c;
+  margin: 0;
+}
+
+.user-name {
+  color: #2e7d32;
+  font-weight: 500;
+  margin-right: 1rem;
+}
+
+.btn-outline-green {
+  color: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.btn-outline-green:hover {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.cart-icon {
+  position: relative;
+  display: inline-block;
+  margin-left: 1rem;
+  font-size: 1.4rem;
+  text-decoration: none;
+  color: #2e7d32;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background-color: #f9a825;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 2px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.nav-links {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e8e0;
+  padding: 0.5rem 0;
+}
+
+.nav-links .nav-link {
+  color: #2e7d32;
+  font-weight: 500;
+  margin-right: 1.5rem;
+  padding: 0.25rem 0;
+  transition: all 0.2s ease;
+}
+
+.nav-links .nav-link:hover {
+  color: #1b5e20;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.weather-block {
+  color: #6c8b6c;
+  font-size: 0.85rem;
+}
+
+.footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e0e8e0;
+  margin-top: 3rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  color: #6c8b6c;
+  font-size: 0.85rem;
+  text-align: center;
+}

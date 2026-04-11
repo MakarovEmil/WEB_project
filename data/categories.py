@@ -1,7 +1,6 @@
 import sqlalchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
-from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
 
