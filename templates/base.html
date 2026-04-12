@@ -28,7 +28,6 @@
               src="{{ url_for('static', filename='image/logo/logo.jpg') }}"
               alt="Логотип"
               class="logo-img"
-              onerror="this.src = 'https://via.placeholder.com/60?text=Seed'"
             />
             <div>
               <div class="brand-title">Семена Сада</div>
@@ -64,13 +63,16 @@
           class="d-flex justify-content-between align-items-center flex-wrap"
         >
           <div class="d-flex flex-wrap">
-            <a href="/catalog" class="nav-link">Каталог</a>
+			  {% if current_user.is_authenticated and current_user.is_admin %}
+			  <a href="/catalog" class="nav-link">Управление товарами</a>
+			  {% else %}
+			  <a href="/catalog" class="nav-link">Каталог</a>
+			  {% endif %}
             <a href="/about" class="nav-link">О магазине</a>
             <a href="/contacts" class="nav-link">Контакты</a>
             <a href="/delivery" class="nav-link">Доставка</a>
 
             {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="/admin/products" class="nav-link">Товары</a>
             <a href="/admin/orders" class="nav-link">Заказы</a>
             <a href="/admin/reports" class="nav-link">Отчёты</a>
             {% endif %}

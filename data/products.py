@@ -9,6 +9,10 @@ from sqlalchemy_serializer import SerializerMixin
 class Product(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'products'
 
+    serialize_only = ('id', 'name', 'category_id', 'category.name', 'price', 'stock',
+                      'image_path', 'description', 'sowing_month_start', 'sowing_month_end',
+                      'difficulty', 'modified_date', 'order_items')
+
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String)
     category_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('categories.id'))

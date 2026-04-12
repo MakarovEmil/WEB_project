@@ -10,6 +10,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
 
+    serialize_only = ('id', 'surname', 'name', 'age', 'email', 'hashed_password', 'image_path',
+                      'modified_date', 'is_admin', 'total_orders_count', 'total_spent', 'orders')
+
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     surname = sqlalchemy.Column(sqlalchemy.String)
     name = sqlalchemy.Column(sqlalchemy.String)
