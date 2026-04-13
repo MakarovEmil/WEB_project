@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if product %}
+<h1>Edit Product From</h1> 
+{% else %}
+<h1>Add Product From</h1>
+{% endif %}
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(class="form-control", type="text") }}<br>
+        {% for error in form.name.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.category_id.label }}<br>
+        {{ form.category_id(class="form-control", type="text") }}<br>
+        {% for error in form.category_id.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.sowing_month_start.label }}<br>
+        {{ form.sowing_month_start(class="form-control", type="text") }}<br>
+        {% for error in form.sowing_month_start.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.sowing_month_end.label }}<br>
+        {{ form.sowing_month_end(class="form-control", type="text") }}<br>
+        {% for error in form.sowing_month_end.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.difficulty.label }}<br>
+        {{ form.difficulty(class="form-control", type="text") }}<br>
+        {% for error in form.difficulty.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.price.label }}<br>
+        {{ form.price(class="form-control") }}<br>
+        {% for error in form.price.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.stock.label }}<br>
+        {{ form.stock(class="form-control") }}<br>
+        {% for error in form.stock.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.description.label }}<br>
+        {{ form.description(class="form-control") }}<br>
+        {% for error in form.description.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+
+    {% if product %}
+    <div class="form-group">
+        <label>Текущее фото</label><br>
+        <img src="/{{ product.image_path }}" alt="{{ product.name }}" style="height: 150px; object-fit: cover;">
+    </div>
+    
+    <div class="form-group">
+        <input type="checkbox" name="delete_photo" id="delete_photo">
+        <label for="delete_photo">Удалить текущее фото</label>
+    </div>
+    {% endif %}
+    
+
+    <p>
+        <label for="photo">Choose product avatar</label>
+        <input type="file" class="form-control-file" id="photo" name="file">
+    </p>
+    
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    
+    {{message}}
+</form>
+{% endblock %}
