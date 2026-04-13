@@ -148,6 +148,10 @@ def catalog():
 def mass_delete():
     product_ids = request.form.getlist('product_ids')
     for product_id in product_ids:
+        product = get(f'http://127.0.0.1:5000/api/products/{product_id}').json()
+        product_dict = product['products']
+        if product_dict['image_path'] and product_dict['image_path'] != 'static/image/logo/default_product_logo.jpg':
+            os.remove(os.path.join(os.path.dirname(__file__), product_dict['image_path']))
         delete(f'http://127.0.0.1:5000/api/products/{product_id}')
     return redirect(request.referrer or '/catalog')
 
@@ -159,9 +163,9 @@ def add_product():
     form.category_id.choices = [(c.id, c.name) for c in categories]
     if form.validate_on_submit():
         if db_sess.query(Product).filter(Product.name == form.name.data).first():
-            return render_template('add_product.html', title='Добавление товара',
+            return render_template('product.html', title='Добавление товара',
                                    form=form,
-                                   message="Такой товар уже есть")
+                                   message="Такой товар уже есть", product=None)
 
         product = Product(
             name=form.name.data,
@@ -192,10 +196,77 @@ def add_product():
             product.image_path = f'static/image/logo/{filename}'
             db_sess.commit()
         return redirect('/')
-    return render_template('add_product.html', title='Добавление товара',
-                           form=form, categories=categories)
+    return render_template('product.html', title='Добавление товара',
+                           form=form, categories=categories, product=None)
 
 
+@app.route('/admin/product/delete/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    product = get(f'http://127.0.0.1:5000/api/products/{product_id}').json()
+    product_dict = product['products']
+    if product_dict['image_path'] and product_dict['image_path'] != 'static/image/logo/default_product_logo.jpg':
+        os.remove(os.path.join(os.path.dirname(__file__), product_dict['image_path']))
+    delete(f'http://127.0.0.1:5000/api/products/{product_id}')
+
+    return redirect(request.referrer or '/catalog')
+
+
+@app.route('/admin/product/edit/<int:product_id>', methods=['GET', 'POST'])
+def edit_product(product_id):
+    form = AddProductForm()
+    db_sess = create_session()
+    categories = db_sess.query(Category).all()
+    form.category_id.choices = [(c.id, c.name) for c in categories]
+    product = db_sess.get(Product, product_id)
+    if not product:
+        return redirect('/catalog')
+    if request.method == 'GET':
+        form.name.data = product.name
+        form.price.data = product.price
+        form.stock.data = product.stock
+        form.description.data = product.description
+        form.category_id.data = product.category_id
+        form.difficulty.data = product.difficulty
+        form.sowing_month_start.data = product.sowing_month_start
+        form.sowing_month_end.data = product.sowing_month_end
+
+    if form.validate_on_submit():
+        product.name = form.name.data
+        product.price = form.price.data
+        product.stock = form.stock.data
+        product.description = form.description.data
+        product.category_id = form.category_id.data
+        product.difficulty = form.difficulty.data
+        product.sowing_month_start = form.sowing_month_start.data
+        product.sowing_month_end = form.sowing_month_end.data
+
+        delete_photo = request.form.get('delete_photo') == 'on'
+
+        if delete_photo:
+            if product.image_path and product.image_path != 'static/image/logo/default_product_logo.jpg':
+                full_path = os.path.join(os.path.dirname(__file__), product.image_path)
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+            product.image_path = 'static/image/logo/default_product_logo.jpg'
+
+        file = request.files.get('file')
+        if file and file.filename != '':
+            if product.image_path and product.image_path != 'static/image/logo/default_product_logo.jpg':
+                full_path = os.path.join(os.path.dirname(__file__), product.image_path)
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            if ext in ALLOWED_EXTENSIONS:
+                filename = f"{product.id}.{ext}"
+                file.save(os.path.join(UPLOAD_FOLDER_FOR_AVATARS_PRODUCTS, filename))
+                product.image_path = f'static/image/uploads/avatars_products/{filename}'
+
+        db_sess.commit()
+        return redirect('/catalog')
+
+    return render_template('product.html', title='Редактирование товара',
+                           form=form, product=product)
 
 @app.route('/logout')
 @login_required
