@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% block content %}
+
+<h1>Моя корзина</h1>
+
+{% if not items %}
+<p>Корзина пуста</p>
+<a href="/catalog" class="btn btn-success">Перейти в каталог</a>
+
+{% else %}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Фото</th>
+      <th>Название</th>
+      <th>Цена</th>
+      <th>Кол-во</th>
+      <th>Сумма</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td><img src="{{ item.product.image_path }}" width="50" /></td>
+      <td>{{ item.product.name }}</td>
+      <td>{{ item.product.price }} руб.</td>
+      <td>
+        <form
+          method="post"
+          action="/cart/change/{{ item.product.id }}"
+          style="display: inline-block"
+        >
+          <input
+            type="number"
+            name="quantity"
+            value="{{ item.quantity }}"
+            min="1"
+            max="{{ item.product.stock }}"
+          />
+          <button type="submit"></button>
+        </form>
+      </td>
+      <td>{{ item.item_total }} ₽</td>
+      <td>
+        <form method="post" action="/cart/remove/{{ item.product.id }}">
+          <button type="submit">Удалить</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h3>Итого: {{ total }} руб.</h3>
+
+<form method="get" action="/checkout">
+  <button type="submit" class="btn btn-primary">Оформить заказ</button>
+</form>
+
+{% endif %} {% endblock %}

@@ -1,9 +1,11 @@
 import os
+import datetime
 from flask import Flask
 from flask import render_template
 from data.users import User
 from data.categories import Category
 from data.products import Product
+from data.order_item import OrderItem
 from data.db_session import global_init, create_session
 from data.forms.registration import RegisterForm
 from data.forms.add_product import AddProductForm
@@ -15,6 +17,7 @@ from flask_restful import Api
 from data.api import user_resources
 from data.api import products_resources
 from requests import get, post, delete, put
+from flask import session
 
 UPLOAD_FOLDER_FOR_AVATARS_USERS = 'static/image/uploads/avatars_users/'
 UPLOAD_FOLDER_FOR_AVATARS_PRODUCTS = 'static/image/uploads/avatars_products/'
@@ -24,6 +27,9 @@ SECRET_KEY_FOR_ADMINS = 'вкусные семечки'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
+    days=365
+)
 
 api = Api(app)
 api.add_resource(user_resources.UsersListResource, '/api/users')
@@ -267,6 +273,94 @@ def edit_product(product_id):
 
     return render_template('product.html', title='Редактирование товара',
                            form=form, product=product)
+
+
+@app.route('/product/<int:product_id>')
+def product_card(product_id):
+    db_sess = create_session()
+    product = db_sess.get(Product, product_id)
+    popularity_count = db_sess.query(OrderItem).filter(OrderItem.product_id == product.id).count()
+    similar_products = db_sess.query(Product).filter(
+        Product.category_id == product.category_id,
+        Product.id != product.id).limit(4).all()
+    return render_template('product_card.html', title='Карточка товара',
+                           product=product, popularity_count=popularity_count, similar_products=similar_products)
+
+
+@app.route('/cart/add/<int:product_id>', methods=['POST'])
+def add(product_id):
+    quantity = int(request.form.get('quantity'))
+    product = get(f'http://127.0.0.1:5000/api/products/{product_id}').json()['products']
+
+    if not product:
+        return redirect(request.referrer)
+
+    cart = session.get('cart', {})
+
+    current = int(cart.get(str(product_id), 0))
+    new_quantity = current + quantity
+
+    if int(product['stock']) < new_quantity:
+        if int(product['stock']) < new_quantity:
+            return render_template('product_card.html',
+                                   product=product,
+                                   message='Недостаточно товара на складе')
+
+    cart[str(product_id)] = new_quantity
+    session.permanent = True
+    session['cart'] = cart
+
+    return redirect('/catalog')
+
+
+@app.route('/cart')
+def cart():
+    cart = session.get('cart', {})
+
+    items = []
+    total = 0
+
+    db_sess = create_session()
+
+    for product_id, quantity in cart.items():
+        product = db_sess.get(Product, int(product_id))
+        if product:
+            item_total = product.price * quantity
+            items.append({
+                'product': product,
+                'quantity': quantity,
+                'item_total': item_total
+            })
+            total += item_total
+
+    return render_template('cart.html',
+                           items=items,
+                           total=total)
+
+
+@app.route('/cart/change/<int:product_id>', methods=['POST'])
+def change_cart(product_id):
+    cart = session.get('cart', {})
+    quantity = int(request.form.get('quantity'))
+    cart[str(product_id)] = quantity
+    session['cart'] = cart
+    return redirect(request.referrer or '/cart')
+
+
+@app.route('/cart/remove/<int:product_id>', methods=['POST'])
+def remove(product_id):
+    cart = session.get('cart', {})
+    cart.pop(str(product_id), None)
+    session['cart'] = cart
+    return redirect(request.referrer or '/cart')
+
+
+@app.context_processor
+def cart_count():
+    cart = session.get('cart', {})
+    count = sum(cart.values())
+    return dict(cart_count=count)
+
 
 @app.route('/logout')
 @login_required

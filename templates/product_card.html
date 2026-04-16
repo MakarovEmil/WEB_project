@@ -1,0 +1,116 @@
+{% extends "base.html" %} {% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Левая колонка: фото -->
+    <div class="col-md-5">
+      <img
+        src="/{{ product.image_path }}"
+        class="img-fluid rounded"
+        alt="{{ product.name }}"
+      />
+    </div>
+
+    <!-- Правая колонка: информация -->
+    <div class="col-md-7">
+      <h1>{{ product.name }}</h1>
+
+      <!-- Цена -->
+      <h2 class="text-success">{{ product.price }} руб.</h2>
+
+      <!-- Наличие -->
+      {% if product.stock > 0 %}
+      <p class="text-success">В наличии: {{ product.stock }} шт.</p>
+      {% else %}
+      <p class="text-danger">Нет в наличии</p>
+      {% endif %}
+
+      <!-- Характеристики -->
+      <ul class="list-unstyled">
+        <li>
+          Сложность: {% if product.difficulty == 'easy' %}Лёгкая {% elif
+          product.difficulty == 'medium' %}Средняя {% else %}Сложная{% endif %}
+        </li>
+        <li>
+          Посев: {% if product.sowing_month_start and product.sowing_month_end
+          %} {{ product.sowing_month_start }} - {{ product.sowing_month_end }}
+          месяц {% else %} Информация отсутствует {% endif %}
+        </li>
+      </ul>
+
+      <!-- Блок добавления в корзину -->
+      <form method="POST" action="/cart/add/{{ product.id }}" class="mt-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-auto">
+            <label for="quantity" class="col-form-label">Количество:</label>
+          </div>
+          <div class="col-auto">
+            <input
+              type="number"
+              name="quantity"
+              id="quantity"
+              value="1"
+              min="1"
+              max="{{ product.stock }}"
+              class="form-control"
+              style="width: 80px"
+            />
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-lg">
+              В корзину
+            </button>
+          </div>
+        </div>
+        {% if message %}
+        <div class="alert alert-danger">{{ message }}</div>
+        {% endif %}
+      </form>
+
+      <!-- Популярность -->
+      <div class="mt-4 p-2 bg-light rounded">
+        Популярность: куплен <strong>{{ popularity_count }}</strong> раз
+      </div>
+    </div>
+  </div>
+
+  <!-- Описание товара -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <h3>Описание</h3>
+      <p>{{ product.description }}</p>
+    </div>
+  </div>
+
+  <!-- Похожие товары -->
+  {% if similar_products %}
+  <div class="row mt-5">
+    <div class="col-12">
+      <h3>Похожие товары</h3>
+    </div>
+    {% for similar in similar_products %}
+    <div class="col-md-3 col-sm-6 mb-4">
+      <div class="card h-100">
+        <a href="/product/{{ similar.id }}">
+          <img
+            src="/{{ similar.image_path }}"
+            class="card-img-top"
+            alt="{{ similar.name }}"
+            style="height: 150px; object-fit: cover"
+          />
+        </a>
+        <div class="card-body">
+          <a
+            href="/product/{{ similar.id }}"
+            class="text-decoration-none text-dark"
+          >
+            <h6>{{ similar.name }}</h6>
+          </a>
+          <p class="text-success">{{ similar.price }} руб.</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
