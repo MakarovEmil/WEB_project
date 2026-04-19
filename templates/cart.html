@@ -38,10 +38,10 @@
             min="1"
             max="{{ item.product.stock }}"
           />
-          <button type="submit"></button>
+          <button type="submit" class="btn btn-primary">Изменить</button>
         </form>
       </td>
-      <td>{{ item.item_total }} ₽</td>
+      <td>{{ item.item_total }}</td>
       <td>
         <form method="post" action="/cart/remove/{{ item.product.id }}">
           <button type="submit">Удалить</button>
@@ -55,7 +55,14 @@
 <h3>Итого: {{ total }} руб.</h3>
 
 <form method="get" action="/checkout">
-  <button type="submit" class="btn btn-primary">Оформить заказ</button>
+  <button
+    type="submit"
+    class="btn btn-primary"
+    name="total"
+    value="{{ total }}"
+  >
+    Оформить заказ
+  </button>
 </form>
 
 {% endif %} {% endblock %}

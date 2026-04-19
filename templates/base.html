@@ -38,7 +38,7 @@
           </div>
           <div class="col-md-6 d-flex justify-content-end align-items-center">
             {% if current_user.is_authenticated %}
-            <a href="/personal_account" class="user-name">
+            <a href="/user_profile" class="user-name">
               {{ current_user.surname }} {{ current_user.name }}
             </a>
             <a href="/logout" class="btn btn-sm btn-outline-danger">Выйти</a>
@@ -63,11 +63,11 @@
           class="d-flex justify-content-between align-items-center flex-wrap"
         >
           <div class="d-flex flex-wrap">
-			  {% if current_user.is_authenticated and current_user.is_admin %}
-			  <a href="/catalog" class="nav-link">Управление товарами</a>
-			  {% else %}
-			  <a href="/catalog" class="nav-link">Каталог</a>
-			  {% endif %}
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="/catalog" class="nav-link">Управление товарами</a>
+            {% else %}
+            <a href="/catalog" class="nav-link">Каталог</a>
+            {% endif %}
             <a href="/about" class="nav-link">О магазине</a>
             <a href="/contacts" class="nav-link">Контакты</a>
             <a href="/delivery" class="nav-link">Доставка</a>

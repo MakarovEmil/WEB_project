@@ -7,6 +7,8 @@ from sqlalchemy_serializer import SerializerMixin
 class OrderItem(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'order_items'
 
+    serialize_only = ('id', 'order_id', 'product_id', 'quantity', 'price_at_moment')
+
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     order_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('orders.id'))
     product_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('products.id'))
