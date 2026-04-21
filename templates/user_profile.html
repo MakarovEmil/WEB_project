@@ -1,0 +1,132 @@
+{% extends "base.html" %} {% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Левая колонка - профиль -->
+    <div class="col-md-4 mb-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <img
+            src="/{{ user.image_path }}"
+            class="rounded-circle img-fluid mb-3 border"
+            style="width: 150px; height: 150px; object-fit: cover"
+            alt="Аватарка"
+          />
+
+          <h4 class="mb-1">{{ user.surname }} {{ user.name }}</h4>
+          <p class="text-muted small">Пользователь</p>
+
+          <hr />
+
+          <div class="text-left">
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Возраст:</strong> {{ user.age }} лет</p>
+            <p>
+              <strong>Зарегистрирован:</strong> {{
+              user.modified_date.strftime('%d.%m.%Y') }}
+            </p>
+          </div>
+
+          <a
+            href="/edit_profile"
+            class="btn btn-outline-primary btn-sm mt-2 w-100"
+          >
+            Редактировать профиль
+          </a>
+        </div>
+      </div>
+
+      <div class="card mt-3 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Статистика</h5>
+          <div class="row text-center">
+            <div class="col-6">
+              <h3 class="text-primary mb-0">{{ user.total_orders_count }}</h3>
+              <small class="text-muted">Заказов</small>
+            </div>
+            <div class="col-6">
+              <h3 class="text-success mb-0">{{ user.total_spent }} руб.</h3>
+              <small class="text-muted">Потрачено</small>
+            </div>
+          </div>
+          <hr />
+          <div class="text-center">
+            <span class="badge badge-warning p-2">
+              Скидка: {% if user.total_orders_count < 3 %}3% {% elif
+              user.total_orders_count < 10 %}5% {% else %}10%{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">История заказов</h5>
+        </div>
+        <div class="card-body">
+          {% if orders %} {% for order in orders %}
+          <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="text-primary">Заказ #{{ order.id }}</strong>
+                <span class="text-muted ml-2"
+                  >{{ order.order_date.strftime('%d.%m.%Y') }}</span
+                >
+              </div>
+              <div>
+                <span class="badge badge-success mr-2"
+                  >{{ order.total_amount }} руб.</span
+                >
+                <a
+                  href="/order/{{ order.id }}"
+                  class="btn btn-sm btn-outline-info"
+                >
+                  Подробнее
+                </a>
+              </div>
+            </div>
+
+            <div class="collapse mt-3" id="orderItems{{ order.id }}">
+              <table class="table table-sm table-bordered mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Товар</th>
+                    <th class="text-center">Кол-во</th>
+                    <th class="text-right">Цена</th>
+                    <th class="text-right">Сумма</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in order.items %}
+                  <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">{{ item.price_at_moment }} ₽</td>
+                    <td class="text-right">
+                      {{ item.quantity * item.price_at_moment }} ₽
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr class="table-active">
+                    <th colspan="3" class="text-right">Итого:</th>
+                    <th class="text-right">{{ order.total_amount }} ₽</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="text-center py-5">
+            <p class="text-muted mb-3">У вас пока нет заказов</p>
+            <a href="/catalog" class="btn btn-primary">Перейти в каталог</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

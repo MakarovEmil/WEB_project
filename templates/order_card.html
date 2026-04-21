@@ -1,0 +1,43 @@
+{% extends "base.html" %} {% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h4>Заказ #{{ order.id }}</h4>
+    </div>
+    <div class="card-body">
+      <p><strong>Дата:</strong> {{ order.order_date.strftime('%d.%m.%Y') }}</p>
+      <p>
+        <strong>Покупатель:</strong> {{ order.user.surname }} {{ order.user.name
+        }}
+      </p>
+      <p><strong>Скидка:</strong> {{ order.discount_percent }}%</p>
+
+      <hr />
+
+      <h6>Товары:</h6>
+      <ul>
+        {% for item in order.items %}
+        <li>
+          {{ item.product.name }} x{{ item.quantity }} = {{ item.quantity *
+          item.price_at_moment }} руб.
+        </li>
+        {% endfor %}
+      </ul>
+
+      <hr />
+
+      <h5>Итого: {{ order.total_amount }} руб.</h5>
+      {% if order.discount_percent > 0 %}
+      <p class="text-muted">
+        Без скидки: {{ (order.total_amount / (1 - order.discount_percent / 100))
+        | round(2) }} руб.
+      </p>
+      {% endif %}
+
+      <a href="/user_profile" class="btn btn-secondary mt-3"
+        >← Назад к заказам</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock %}
