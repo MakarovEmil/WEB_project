@@ -55,7 +55,7 @@
     </p>
     <p>
         {{ form.price.label }}<br>
-        {{ form.price(class="form-control") }}<br>
+        {{ form.price(class="form-control", min="20", type="number") }}<br>
         {% for error in form.price.errors %}
             <p class="alert alert-danger" role="alert">
                 {{ error }}
@@ -64,7 +64,7 @@
     </p>
     <p>
         {{ form.stock.label }}<br>
-        {{ form.stock(class="form-control") }}<br>
+        {{ form.stock(class="form-control", min="1", type="number") }}<br>
         {% for error in form.stock.errors %}
             <p class="alert alert-danger" role="alert">
                 {{ error }}

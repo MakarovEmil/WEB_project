@@ -20,11 +20,12 @@ from data.api import user_resources
 from data.api import products_resources
 from requests import get, post, delete, put
 from flask import session
+from sqlalchemy.orm import joinedload
 
 UPLOAD_FOLDER_FOR_AVATARS_USERS = 'static/image/uploads/avatars_users/'
 UPLOAD_FOLDER_FOR_AVATARS_PRODUCTS = 'static/image/uploads/avatars_products/'
 PRODUCT_DEFAULT_LOGO = 'static/image/logo/default_product_logo.jpg'
-USER_DEFAULT_LOGO = 'static/image/logo/default_logo.jpg'
+USER_DEFAULT_LOGO = 'static/image/logo/default_logo.png'
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 
 SECRET_KEY_FOR_ADMINS = 'вкусные семечки'
@@ -112,9 +113,55 @@ def registration():
             db_sess.commit()
             return redirect('/login')
 
-    return render_template('registration.html', title='Регистрация', form=form)
+    return render_template('user.html', title='Регистрация', form=form)
 
 
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = RegisterForm()
+
+    with create_session() as db_sess:
+        user = db_sess.get(User, current_user.id)
+
+        if request.method == 'GET':
+            form.email.data = user.email
+            form.surname.data = user.surname
+            form.name.data = user.name
+            form.age.data = user.age
+
+        if form.validate_on_submit():
+            user.email = form.email.data
+            user.surname = form.surname.data
+            user.name = form.name.data
+            user.age = form.age.data
+
+            if form.age.data <= 1:
+                return render_template('user.html', title='Редактирование профиля',
+                                       form=form, user=user, message="Некоректный возраст")
+
+            if form.password.data:
+                if form.password.data != form.password_again.data:
+                    return render_template('user.html', title='Редактирование профиля',
+                                           form=form, user=user, message="Пароли не совпадают")
+                user.set_password(form.password.data)
+
+            if request.form.get('delete_avatar') == 'on':
+                delete_file(user.image_path, USER_DEFAULT_LOGO)
+                user.image_path = USER_DEFAULT_LOGO
+
+            file = request.files.get('file')
+            if file and file.filename != '':
+                delete_file(user.image_path, USER_DEFAULT_LOGO)
+                avatar_path = save_file(file, user.id, UPLOAD_FOLDER_FOR_AVATARS_USERS)
+                if avatar_path:
+                    user.image_path = avatar_path
+
+            db_sess.commit()
+            return redirect('/')
+
+        return render_template('user.html', title='Редактирование профиля',
+                               form=form, user=user)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -191,6 +238,11 @@ def add_product():
                                        form=form,
                                        message="Такой товар уже есть", product=None)
 
+            if form.stock.data < 0 or form.price.data < 0:
+                return render_template('product.html', title='Добавление товара',
+                                       form=form,
+                                       message="Некоректная цена или остаток товара", product=None)
+
             product = Product(
                 name=form.name.data,
                 price=form.price.data,
@@ -248,6 +300,12 @@ def edit_product(product_id):
             form.sowing_month_end.data = product.sowing_month_end
 
         if form.validate_on_submit():
+
+            if form.stock.data < 0 or form.price.data < 0:
+                return render_template('product.html', title='Добавление товара',
+                                       form=form,
+                                       message="Некоректная цена или остаток товара", product=None)
+
             product.name = form.name.data
             product.price = form.price.data
             product.stock = form.stock.data
@@ -409,6 +467,18 @@ def checkout():
 
     return redirect('/')
 
+
+@app.route('/order/<int:order_id>')
+def order_card(order_id):
+    with create_session() as db_sess:
+        order = db_sess.query(Order).options(joinedload(Order.user),
+            joinedload(Order.items).joinedload(OrderItem.product)
+        ) \
+            .filter(Order.id == order_id) \
+            .first()
+
+        return render_template('order_card.html', title='Карточка заказа', order=order)
+
 @app.context_processor
 def cart_count():
     cart = session.get('cart', {})
@@ -420,10 +490,10 @@ def cart_count():
 @login_required
 def profile():
     with create_session() as db_sess:
-        orders = db_sess.query(Order).filter(Order.user_id == current_user.id).all()
-        for order in orders:
-            for item in order.items:
-                _ = item.product
+        orders = db_sess.query(Order).filter(Order.user_id == current_user.id).options(
+            joinedload(Order.items).joinedload(OrderItem.product)
+        ) \
+            .all()
 
     return render_template('user_profile.html',
                            user=current_user,
