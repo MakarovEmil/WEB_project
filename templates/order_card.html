@@ -32,11 +32,8 @@
         Без скидки: {{ (order.total_amount / (1 - order.discount_percent / 100))
         | round(2) }} руб.
       </p>
-      {% endif %}
-
-      <a href="/user_profile" class="btn btn-secondary mt-3"
-        >← Назад к заказам</a
-      >
+      {% endif %} {% set back_url = request.args.get('next', '/user_profile') %}
+      <a href="{{ back_url }}" class="btn btn-secondary mt-3"> ← Назад </a>
     </div>
   </div>
 </div>

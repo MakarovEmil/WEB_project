@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Параметры отчёта</h5>
+        </div>
+        <div class="card-body">
+            {% if error_message %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+            
+            <form method="GET" action="/admin/reports">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Дата от:</label>
+                        <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Дата до:</label>
+                        <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Тип отчёта:</label>
+                        <select name="report_type" class="form-control">
+                            <option value="orders" {% if report_type == 'orders' %}selected{% endif %}>По заказам</option>
+                            <option value="products" {% if report_type == 'products' %}selected{% endif %}>По товарам</option>
+                            <option value="customers" {% if report_type == 'customers' %}selected{% endif %}>По клиентам</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Сформировать</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if report_type == 'orders' and date_from and date_to and not error_message %}
+        {% if orders %}
+            <div class="row text-center mb-4">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-primary mb-0">{{ total_amount }} ₽</h3>
+                        <small class="text-muted">Выручка</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-success mb-0">{{ total_orders }}</h3>
+                        <small class="text-muted">Заказов</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-warning mb-0">{{ avg_check }} ₽</h3>
+                        <small class="text-muted">Средний чек</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Список заказов</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>№ заказа</th>
+                                    <th>Дата</th>
+                                    <th>Клиент</th>
+                                    <th>Сумма</th>
+                                    <th>Скидка</th>
+                                    <th>Детали</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+                                    <td>{{ order.order_date.strftime('%d.%m.%Y') }}</td>
+                                    <td>
+                                        <a href="/admin/user/{{ order.user.id }}?next={{ request.url | urlencode }}" class="text-decoration-none">
+                                            {{ order.user.surname }} {{ order.user.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ order.total_amount }} ₽</small></td>
+                                    <td>{{ order.discount_percent }}%</small></td>
+                                    <td>
+                                        <a href="/order/{{ order.id }}?next={{ request.url | urlencode }}" class="btn btn-sm btn-outline-info">
+                                            Подробнее
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">Нет заказов за выбранный период</div>
+        {% endif %}
+
+    {% elif report_type == 'products' and date_from and date_to and not error_message %}
+        {% if products_data and products_data.details %}
+            <div class="row text-center mb-4">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-primary mb-0">{{ products_data.total_products_sold }}</h3>
+                        <small class="text-muted">Товаров продано</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-success mb-0">{{ products_data.total_quantity }}</h3>
+                        <small class="text-muted">Штук продано</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 bg-light">
+                        <h3 class="text-warning mb-0">{{ products_data.total_amount }} ₽</h3>
+                        <small class="text-muted">Выручка</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Топ товаров</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Товар</th>
+                                    <th>Продано (шт)</th>
+                                    <th>Выручка</th>
+                                    <th>Детали</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in products_data.details %}
+                                <tr>
+                                    <td>{{ item.name }}</small></td>
+                                    <td>{{ item.quantity }} шт.</small></td>
+                                    <td>{{ item.total }} ₽</small></td>
+                                    <td>
+                                        <a href="/product/{{ item.id }}?next={{ request.url | urlencode }}" class="btn btn-sm btn-outline-info">
+                                            Подробнее
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">Нет продаж за выбранный период</div>
+        {% endif %}
+
+
+
+{% elif report_type == 'customers' and date_from and date_to and not error_message %}
+    {% if customers_data and customers_data.details %}
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="border rounded p-3 bg-light">
+                    <h3 class="text-primary mb-0">{{ customers_data.total_customers }}</h3>
+                    <small class="text-muted">Клиентов</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 bg-light">
+                    <h3 class="text-success mb-0">{{ customers_data.total_amount }} ₽</h3>
+                    <small class="text-muted">Выручка</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 bg-light">
+                    <h3 class="text-warning mb-0">{{ customers_data.avg_per_customer }} ₽</h3>
+                    <small class="text-muted">Средний чек на клиента</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Активность клиентов</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Клиент</th>
+                                <th>Заказов</th>
+                                <th>Потрачено</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers_data.details %}
+                            <tr>
+                                <td>
+                                    <a href="/admin/user/{{ customer.user_id }}?next={{ request.url | urlencode }}" class="text-decoration-none">
+                                        {{ customer.name }}
+                                    </a>
+                                </small></td>
+                                <td>{{ customer.orders_count }} </small></td>
+                                <td>{{ customer.total_spent }} ₽</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">Нет данных за выбранный период</div>
+    {% endif %}
+{% endif %}
+</div>
+{% endblock %}

@@ -19,7 +19,6 @@
       <p class="text-danger">Нет в наличии</p>
       {% endif %}
 
-
       <ul class="list-unstyled">
         <li>
           Сложность: {% if product.difficulty == 'easy' %}Лёгкая {% elif
@@ -66,7 +65,6 @@
     </div>
   </div>
 
-
   <div class="row mt-5">
     <div class="col-12">
       <h3>Описание</h3>
@@ -74,6 +72,8 @@
     </div>
   </div>
 
+  {% set back_url = request.args.get('next', request.referrer or '/catalog') %}
+  <a href="{{ back_url }}" class="btn btn-secondary mt-3">Назад </a>
 
   {% if similar_products %}
   <div class="row mt-5">

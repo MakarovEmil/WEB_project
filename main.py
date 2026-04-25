@@ -479,6 +479,125 @@ def order_card(order_id):
 
         return render_template('order_card.html', title='Карточка заказа', order=order)
 
+
+@app.route('/admin/reports', methods=['GET', 'POST'])
+@login_required
+def reports():
+
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+    report_type = request.args.get('report_type', 'orders')
+
+    orders = []
+    total_amount = 0
+    total_orders = 0
+    avg_check = 0
+
+    error_message = None
+    products_data = None
+    customers_data = None
+
+    if date_from and date_to:
+        try:
+            start_date = datetime.datetime.strptime(date_from, '%Y-%m-%d')
+            end_date = datetime.datetime.strptime(date_to, '%Y-%m-%d')
+
+            if start_date > end_date:
+                error_message = "Ошибка: дата «от» не может быть позже даты «до»"
+            else:
+                with create_session() as db_sess:
+                    if report_type == 'orders':
+                        orders = db_sess.query(Order) \
+                            .options(joinedload(Order.user)) \
+                            .filter(Order.order_date >= start_date) \
+                            .filter(Order.order_date <= end_date) \
+                            .order_by(Order.order_date) \
+                            .all()
+
+                        total_orders = len(orders)
+                        total_amount = sum(order.total_amount for order in orders)
+                        if total_orders > 0:
+                            avg_check = total_amount // total_orders
+                    elif report_type == 'products':
+                        all_products = db_sess.query(Product).all()
+
+                        products_list = []
+
+                        for product in all_products:
+                            quantity = 0
+                            total = 0
+
+                            for item in product.order_items:
+                                if start_date <= item.order.order_date <= end_date:
+                                    quantity += item.quantity
+                                    total += item.quantity * item.price_at_moment
+
+                            if quantity > 0:
+                                products_list.append({
+                                    'id': product.id,
+                                    'name': product.name,
+                                    'quantity': quantity,
+                                    'total': total
+                                })
+
+                        products_list.sort(key=lambda x: x['total'], reverse=True)
+
+                        products_data = {
+                            'total_products_sold': len(products_list),
+                            'total_quantity': sum(p['quantity'] for p in products_list),
+                            'total_amount': sum(p['total'] for p in products_list),
+                            'details': products_list
+                        }
+
+                    elif report_type == 'customers':
+                        orders_for_customers = db_sess.query(Order) \
+                            .options(joinedload(Order.user)) \
+                            .filter(Order.order_date >= start_date) \
+                            .filter(Order.order_date <= end_date) \
+                            .all()
+
+                        customers_dict = {}
+                        for order in orders_for_customers:
+                            user_id = order.user.id
+                            if user_id not in customers_dict:
+                                customers_dict[user_id] = {
+                                    'user_id': user_id,
+                                    'name': f"{order.user.surname} {order.user.name}",
+                                    'orders_count': 0,
+                                    'total_spent': 0
+                                }
+                            customers_dict[user_id]['orders_count'] += 1
+                            customers_dict[user_id]['total_spent'] += order.total_amount
+
+                        customers_list = list(customers_dict.values())
+                        customers_list.sort(key=lambda x: x['total_spent'], reverse=True)
+
+                        total_customers = len(customers_list)
+                        total_amount_customers = sum(c['total_spent'] for c in customers_list)
+                        avg_per_customer = total_amount_customers // total_customers if total_customers > 0 else 0
+
+                        customers_data = {
+                            'total_customers': total_customers,
+                            'total_amount': total_amount_customers,
+                            'avg_per_customer': avg_per_customer,
+                            'details': customers_list
+                        }
+
+        except ValueError:
+            error_message = "Ошибка: неверный формат даты"
+
+    return render_template('reports.html',
+                         title='Отчёты',
+                         date_from=date_from,
+                         date_to=date_to,
+                         report_type=report_type,
+                         orders=orders,
+                         total_amount=total_amount,
+                         total_orders=total_orders,
+                         avg_check=avg_check,
+                         products_data=products_data,
+                         customers_data=customers_data,
+                         error_message=error_message)
 @app.context_processor
 def cart_count():
     cart = session.get('cart', {})
@@ -488,15 +607,29 @@ def cart_count():
 
 @app.route('/user_profile')
 @login_required
-def profile():
+def user_profile():
+    return show_user_profile(current_user.id)
+
+
+@app.route('/admin/user/<int:user_id>')
+@login_required
+def admin_user_profile(user_id):
+    return show_user_profile(user_id)
+
+
+def show_user_profile(user_id):
     with create_session() as db_sess:
-        orders = db_sess.query(Order).filter(Order.user_id == current_user.id).options(
-            joinedload(Order.items).joinedload(OrderItem.product)
-        ) \
+        user = db_sess.get(User, user_id)
+
+        orders = db_sess.query(Order) \
+            .options(joinedload(Order.items).joinedload(OrderItem.product)) \
+            .filter(Order.user_id == user.id) \
+            .order_by(Order.order_date.desc()) \
             .all()
 
     return render_template('user_profile.html',
-                           user=current_user,
+                           title='Профиль пользователя',
+                           user=user,
                            orders=orders)
 
 @app.route('/logout')

@@ -13,7 +13,11 @@
           />
 
           <h4 class="mb-1">{{ user.surname }} {{ user.name }}</h4>
+          {% if user.is_admin %}
+          <p class="text-muted small">Администратор</p>
+          {% else %}
           <p class="text-muted small">Пользователь</p>
+          {% endif %}
 
           <hr />
 
@@ -26,13 +30,22 @@
             </p>
           </div>
 
+          {% if current_user.id == user.id %}
           <a
             href="/edit_profile"
             class="btn btn-outline-primary btn-sm mt-2 w-100"
           >
             Редактировать профиль
           </a>
+          {% endif %}
         </div>
+        {% if request.args.get('next') %}
+        <a href="{{ request.args.get('next') }}" class="btn btn-secondary mt-3">
+          ← Назад
+        </a>
+        {% else %}
+        <a href="/catalog" class="btn btn-secondary mt-3">В каталог </a>
+        {% endif %}
       </div>
 
       <div class="card mt-3 shadow-sm">
@@ -51,8 +64,9 @@
           <hr />
           <div class="text-center">
             <span class="badge badge-warning p-2">
-              Скидка: {% if user.total_orders_count < 3 %}3% {% elif
-              user.total_orders_count < 10 %}5% {% else %}10%{% endif %}
+              Скидка: {% if user.total_spent > 10000 %}10% {% elif
+              user.total_spent > 3000 %}5% {% elif user.total_spent > 1000 %}3%
+              {% else %}0%{% endif %}
             </span>
           </div>
         </div>
@@ -79,7 +93,7 @@
                   >{{ order.total_amount }} руб.</span
                 >
                 <a
-                  href="/order/{{ order.id }}"
+                  href="/order/{{ order.id }}?next={{ request.url | urlencode }}"
                   class="btn btn-sm btn-outline-info"
                 >
                   Подробнее
