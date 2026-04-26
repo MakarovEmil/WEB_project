@@ -63,22 +63,15 @@
           class="d-flex justify-content-between align-items-center flex-wrap"
         >
           <div class="d-flex flex-wrap">
+            <a href="/" class="nav-link">Главная</a>
             {% if current_user.is_authenticated and current_user.is_admin %}
             <a href="/catalog" class="nav-link">Управление товарами</a>
             {% else %}
             <a href="/catalog" class="nav-link">Каталог</a>
-            {% endif %}
-            <a href="/about" class="nav-link">О магазине</a>
-            <a href="/contacts" class="nav-link">Контакты</a>
-            <a href="/delivery" class="nav-link">Доставка</a>
-
-            {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="/admin/orders" class="nav-link">Заказы</a>
+            {% endif %} {% if current_user.is_authenticated and
+            current_user.is_admin %}
             <a href="/admin/reports" class="nav-link">Отчёты</a>
             {% endif %}
-          </div>
-          <div class="weather-block">
-            {{ weather|default('Москва +18°C ☀️') }}
           </div>
         </div>
       </div>

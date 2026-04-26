@@ -11,7 +11,7 @@ from data.db_session import global_init, create_session
 from data.forms.registration import RegisterForm
 from data.forms.add_product import AddProductForm
 from data.forms.login import LoginForm
-from flask import redirect
+from flask import redirect, url_for
 from flask_login import LoginManager, login_user, logout_user, login_required
 from flask_login import current_user
 from flask import request
@@ -79,7 +79,29 @@ def load_user(user_id):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('base.html', title='Главная')
+    current_month = datetime.datetime.now().month
+
+    with create_session() as db_sess:
+        popular_products = db_sess.query(Product) \
+            .join(OrderItem, OrderItem.product_id == Product.id) \
+            .group_by(Product.id) \
+            .limit(4) \
+            .all()
+
+        categories = db_sess.query(Category).all()
+
+        seasonal_products = db_sess.query(Product) \
+            .filter(Product.sowing_month_start <= current_month) \
+            .filter(Product.sowing_month_end >= current_month) \
+            .limit(4) \
+            .all()
+
+    return render_template('index.html',
+                           title='Главная',
+                           popular_products=popular_products,
+                           categories=categories,
+                           seasonal_products=seasonal_products,
+                           now=datetime.datetime.now())
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -165,19 +187,22 @@ def edit_profile():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    next_url = request.args.get('next', '/')
     if form.validate_on_submit():
         with create_session() as db_sess:
             user = db_sess.query(User).filter(User.email == form.email.data).first()
             if not user:
                 return render_template('login.html',
                                        message="Такого пользователя не нашлось",
-                                       form=form)
+                                       form=form,
+                                       next=next_url)
             if user.check_password(form.password.data):
                 if form.is_admin.data:
                     if form.secret_password.data != SECRET_KEY_FOR_ADMINS:
                         return render_template('login.html',
                                                message="Неправильный секретный пароль",
-                                               form=form)
+                                               form=form,
+                                               next=next_url)
                     else:
                         if not user.is_admin:
                             user.is_admin = True
@@ -186,11 +211,12 @@ def login():
                     user.is_admin = False
                     db_sess.commit()
                 login_user(user, remember=form.remember_me.data)
-                return redirect("/")
+                return redirect(next_url)
             return render_template('login.html',
                                    message="Неправильный логин или пароль",
-                                   form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+                                   form=form,
+                                   next=next_url)
+    return render_template('login.html', title='Авторизация', form=form, next=next_url)
 
 @app.route('/catalog')
 def catalog():
@@ -414,14 +440,18 @@ def remove(product_id):
     return redirect(request.referrer or '/cart')
 
 
-@app.route('/checkout', methods=['GET'])
+@app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     if not current_user.is_authenticated:
-        form = LoginForm()
-        return render_template('login.html',
-                               title='Авторизация', form=form, message='Для заказа необходима авторизация')
+        return redirect(url_for('login', next='/checkout'))
     cart = session['cart']
-    total = int(request.args.get('total', 0))
+
+    with create_session() as db_sess:
+        total = 0
+        for product_id, quantity in cart.items():
+            product = db_sess.get(Product, int(product_id))
+            if product:
+                total += product.price * quantity
 
     discount = 0
     if current_user.total_spent >= 10000:

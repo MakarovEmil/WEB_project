@@ -105,3 +105,47 @@ body {
   font-size: 0.85rem;
   text-align: center;
 }
+
+.hero-section {
+  border-radius: 16px;
+}
+.hover-card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.hover-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+.category-card {
+  transition: all 0.2s ease;
+  border: 1px solid #e0e0e0;
+}
+.category-card:hover {
+  background-color: #2d5a2c !important;
+  border-color: #2d5a2c;
+}
+.category-card:hover small {
+  color: white !important;
+}
+.feature-card {
+  transition: all 0.2s ease;
+  border: 1px solid #e0e0e0;
+}
+.feature-card:hover {
+  background-color: #e8f5e9 !important;
+  border-color: #2d5a2c;
+}
+.btn-outline-success {
+  border-color: #2d5a2c;
+  color: #2d5a2c;
+}
+.btn-outline-success:hover {
+  background-color: #2d5a2c;
+  border-color: #2d5a2c;
+  color: white;
+}
+.text-primary {
+  color: #2d5a2c !important;
+}

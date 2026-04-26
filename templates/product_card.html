@@ -25,9 +25,12 @@
           product.difficulty == 'medium' %}Средняя {% else %}Сложная{% endif %}
         </li>
         <li>
+          {% set months = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+          'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'] %}
           Посев: {% if product.sowing_month_start and product.sowing_month_end
-          %} {{ product.sowing_month_start }} - {{ product.sowing_month_end }}
-          месяц {% else %} Информация отсутствует {% endif %}
+          %} {{ months[product.sowing_month_start - 1] }} - {{
+          months[product.sowing_month_end - 1] }} {% else %} Информация
+          отсутствует {% endif %}
         </li>
       </ul>
 

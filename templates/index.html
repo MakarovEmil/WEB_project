@@ -1,0 +1,159 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <div
+    class="hero-section text-center py-5 mb-5 rounded-4"
+    style="
+      background: linear-gradient(135deg, #2d5a2c 0%, #1a3a19 100%);
+      color: white;
+    "
+  >
+    <h1 class="display-3 fw-bold mb-3">Семена Сада</h1>
+    <p class="lead mb-3">Ваш огород с первой попытки</p>
+    <p class="mb-4">
+      Семена овощей, цветов и зелени с доставкой по всей России
+    </p>
+    <hr
+      class="my-4"
+      style="
+        width: 80px;
+        margin: 0 auto;
+        border-color: rgba(255, 255, 255, 0.3);
+      "
+    />
+    <p class="mt-4 mb-4">
+      Только качественные семена от проверенных производителей
+    </p>
+    <a
+      href="/catalog"
+      class="btn btn-light btn-lg px-4 py-2 fw-bold"
+      style="color: #2d5a2c"
+      >Перейти в каталог</a
+    >
+  </div>
+
+  <div class="mb-5">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Хиты продаж</h2>
+      <div
+        class="mt-2"
+        style="width: 60px; height: 3px; background: #2d5a2c; margin: 0 auto"
+      ></div>
+    </div>
+    <div class="row g-4">
+      {% for product in popular_products %}
+      <div class="col-md-3 col-sm-6">
+        <div
+          class="card h-100 border-0 shadow-sm hover-card d-flex flex-column"
+        >
+          <img
+            src="/{{ product.image_path }}"
+            class="card-img-top"
+            alt="{{ product.name }}"
+            style="height: 180px; object-fit: cover; border-radius: 8px 8px 0 0"
+          />
+          <div class="card-body text-center d-flex flex-column flex-grow-1">
+            <h5 class="card-title fw-semibold">{{ product.name }}</h5>
+            <p class="card-text text-primary fw-bold fs-5">
+              {{ product.price }} руб.
+            </p>
+            <div class="mt-auto">
+              <a
+                href="/product/{{ product.id }}"
+                class="btn btn-outline-success btn-sm px-3"
+                >Подробнее</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="mb-5 py-3">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Категории</h2>
+      <div
+        class="mt-2"
+        style="width: 60px; height: 3px; background: #2d5a2c; margin: 0 auto"
+      ></div>
+    </div>
+    <div class="row g-3 text-center">
+      {% for category in categories %}
+      <div class="col-md-2 col-4">
+        <a
+          href="/catalog?category={{ category.id }}"
+          class="text-decoration-none"
+        >
+          <div class="category-card p-3 rounded-3 bg-light text-center">
+            <small class="fw-semibold text-dark">{{ category.name }}</small>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="mb-5">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Сезонные рекомендации</h2>
+      <div
+        class="mt-2"
+        style="width: 60px; height: 3px; background: #2d5a2c; margin: 0 auto"
+      ></div>
+      <p class="text-muted mt-3">
+        {% set months = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне',
+        'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'] %} Что
+        сажать в {{ months[now.month - 1] }}
+      </p>
+    </div>
+    <div class="row g-4">
+      {% for product in seasonal_products %}
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100 border-0 shadow-sm d-flex flex-column">
+          <img
+            src="/{{ product.image_path }}"
+            class="card-img-top"
+            alt="{{ product.name }}"
+            style="height: 180px; object-fit: cover; border-radius: 8px 8px 0 0"
+          />
+          <div class="card-body text-center d-flex flex-column flex-grow-1">
+            <h5 class="card-title fw-semibold">{{ product.name }}</h5>
+            <p class="card-text text-primary fw-bold fs-5">
+              {{ product.price }} руб.
+            </p>
+            <div class="mt-auto">
+              <a
+                href="/product/{{ product.id }}"
+                class="btn btn-outline-success btn-sm px-3"
+                >Подробнее</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted py-5">
+        Нет рекомендаций для текущего месяца
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4 text-center mb-5 py-4 justify-content-center">
+    <div class="col-md-4 col-6">
+      <div class="feature-card p-3 rounded-3 bg-light h-100 d-flex flex-column">
+        <strong class="fs-6">Гарантия</strong>
+        <p class="small text-muted mt-2 mb-0">качества семян</p>
+      </div>
+    </div>
+    <div class="col-md-4 col-6">
+      <div class="feature-card p-3 rounded-3 bg-light h-100 d-flex flex-column">
+        <strong class="fs-6">Поддержка</strong>
+        <p class="small text-muted mt-2 mb-0">24/7</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
