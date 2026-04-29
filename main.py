@@ -222,6 +222,7 @@ def login():
 def catalog():
     search_query = request.args.get('search', '')
     category_id = request.args.get('category', 0)
+    sort_by = request.args.get('sort', 'name')
 
     with create_session() as db_sess:
         query = db_sess.query(Product)
@@ -232,6 +233,25 @@ def catalog():
         if category_id and int(category_id) > 0:
             query = query.filter(Product.category_id == int(category_id))
 
+        if sort_by == 'price_asc':
+            query = query.order_by(Product.price)
+        elif sort_by == 'price_desc':
+            query = query.order_by(Product.price.desc())
+        elif sort_by == 'popularity':
+            products = query.all()
+            for product in products:
+                product.popularity = db_sess.query(OrderItem).filter(OrderItem.product_id == product.id).count()
+            products.sort(key=lambda x: x.popularity, reverse=True)
+            categories = db_sess.query(Category).all()
+            return render_template('catalog.html',
+                                   products=products,
+                                   categories=categories,
+                                   search_query=search_query,
+                                   current_category=int(category_id) if category_id else 0,
+                                   sort_by=sort_by)
+        else:
+            query = query.order_by(Product.name)
+
         products = query.all()
         categories = db_sess.query(Category).all()
 
@@ -239,7 +259,8 @@ def catalog():
                                products=products,
                                categories=categories,
                                search_query=search_query,
-                               current_category=int(category_id) if category_id else 0)
+                               current_category=int(category_id) if category_id else 0,
+                               sort_by=sort_by)
 
 
 @app.route('/admin/products/mass-delete', methods=['POST'])
