@@ -143,6 +143,8 @@ def registration():
 def edit_profile():
     form = RegisterForm()
 
+    next_url = request.args.get('next', request.referrer or '/')
+
     with create_session() as db_sess:
         user = db_sess.get(User, current_user.id)
 
@@ -180,7 +182,11 @@ def edit_profile():
                     user.image_path = avatar_path
 
             db_sess.commit()
-            return redirect('/')
+
+            if next_url and '/edit_profile' in next_url:
+                next_url = '/profile'
+
+            return redirect(next_url)
 
         return render_template('user.html', title='Редактирование профиля',
                                form=form, user=user)
@@ -416,7 +422,7 @@ def add(product_id):
     session.permanent = True
     session['cart'] = cart
 
-    return redirect('/catalog')
+    return redirect(request.referrer or '/cart')
 
 
 @app.route('/cart')

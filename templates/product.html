@@ -73,7 +73,7 @@
     </p>
     <p>
         {{ form.description.label }}<br>
-        {{ form.description(class="form-control") }}<br>
+        {{ form.description(class="form-control", rows="5") }}<br>
         {% for error in form.description.errors %}
             <p class="alert alert-danger" role="alert">
                 {{ error }}

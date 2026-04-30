@@ -32,7 +32,7 @@
 
           {% if current_user.id == user.id %}
           <a
-            href="/edit_profile"
+            href="/edit_profile?next={{ request.url | urlencode }}"
             class="btn btn-outline-primary btn-sm mt-2 w-100"
           >
             Редактировать профиль
