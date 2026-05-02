@@ -72,10 +72,12 @@ def delete_file(file_path, default_path=None):
     if os.path.exists(full_path):
         os.remove(full_path)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = create_session()
     return db_sess.get(User, user_id)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -190,6 +192,8 @@ def edit_profile():
 
         return render_template('user.html', title='Редактирование профиля',
                                form=form, user=user)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -223,6 +227,7 @@ def login():
                                    form=form,
                                    next=next_url)
     return render_template('login.html', title='Авторизация', form=form, next=next_url)
+
 
 @app.route('/catalog')
 def catalog():
@@ -278,6 +283,7 @@ def mass_delete():
         delete_file(product.image_path, PRODUCT_DEFAULT_LOGO)
         delete(f'http://127.0.0.1:5000/api/products/{product_id}')
     return redirect(request.referrer or '/catalog')
+
 
 @app.route('/admin/product/add_product', methods=['GET', 'POST'])
 def add_product():
@@ -389,6 +395,7 @@ def edit_product(product_id):
 
 @app.route('/product/<int:product_id>')
 def product_card(product_id):
+    next_url = request.args.get('next', '')
     with create_session() as db_sess:
         product = db_sess.get(Product, product_id)
         popularity_count = db_sess.query(OrderItem).filter(OrderItem.product_id == product.id).count()
@@ -396,16 +403,26 @@ def product_card(product_id):
             Product.category_id == product.category_id,
             Product.id != product.id).limit(4).all()
     return render_template('product_card.html', title='Карточка товара',
-                           product=product, popularity_count=popularity_count, similar_products=similar_products)
+                           product=product, popularity_count=popularity_count, similar_products=similar_products,
+                           next_url=next_url)
 
 
-@app.route('/cart/add/<int:product_id>', methods=['POST'])
+@app.route('/cart/add/<int:product_id>', methods=['POST', 'GET'])
 def add(product_id):
     quantity = int(request.form.get('quantity'))
+    next_url = request.form.get('next') or request.referrer or '/catalog'
+    source = request.form.get('source')
     with create_session() as db_sess:
         product = db_sess.get(Product, int(product_id))
-    if not product:
-        return redirect(request.referrer)
+
+        if not product:
+            return redirect(request.referrer)
+
+        popularity_count = db_sess.query(OrderItem).filter(OrderItem.product_id == product.id).count()
+        similar_products = db_sess.query(Product).filter(
+            Product.category_id == product.category_id,
+            Product.id != product.id).limit(4).all()
+
 
     cart = session.get('cart', {})
 
@@ -416,13 +433,24 @@ def add(product_id):
         if int(product.stock) < new_quantity:
             return render_template('product_card.html',
                                    product=product,
-                                   message='Недостаточно товара на складе')
+                                   popularity_count=popularity_count,
+                                   similar_products=similar_products,
+                                   message='Товара недостаточно на складе',
+                                   next_url=next_url)
 
     cart[str(product_id)] = new_quantity
     session.permanent = True
     session['cart'] = cart
 
-    return redirect(request.referrer or '/cart')
+    if source == 'catalog':
+        return redirect(next_url)
+    else:
+        return render_template('product_card.html',
+                               product=product,
+                               popularity_count=popularity_count,
+                               similar_products=similar_products,
+                               message='Товар добавлен в корзину',
+                               next_url=next_url)
 
 
 @app.route('/cart')
@@ -516,7 +544,6 @@ def checkout():
         user.total_orders_count += 1
         user.total_spent += final_total
 
-
         db_sess.commit()
 
         session.pop('cart', None)
@@ -574,7 +601,7 @@ def reports():
                         total_orders = len(orders)
                         total_amount = sum(order.total_amount for order in orders)
                         if total_orders > 0:
-                            avg_check = total_amount // total_orders
+                            avg_check = int(total_amount // total_orders)
                     elif report_type == 'products':
                         all_products = db_sess.query(Product).all()
 
@@ -634,9 +661,9 @@ def reports():
                         avg_per_customer = total_amount_customers // total_customers if total_customers > 0 else 0
 
                         customers_data = {
-                            'total_customers': total_customers,
-                            'total_amount': total_amount_customers,
-                            'avg_per_customer': avg_per_customer,
+                            'total_customers': int(total_customers),
+                            'total_amount': int(total_amount_customers),
+                            'avg_per_customer': int(avg_per_customer),
                             'details': customers_list
                         }
 
@@ -655,6 +682,8 @@ def reports():
                          products_data=products_data,
                          customers_data=customers_data,
                          error_message=error_message)
+
+
 @app.context_processor
 def cart_count():
     cart = session.get('cart', {})
@@ -689,11 +718,13 @@ def show_user_profile(user_id):
                            user=user,
                            orders=orders)
 
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect("/")
+
 
 if __name__ == '__main__':
     app.run()

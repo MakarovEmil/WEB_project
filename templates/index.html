@@ -58,7 +58,7 @@
             </p>
             <div class="mt-auto">
               <a
-                href="/product/{{ product.id }}"
+                href="/product/{{ product.id }}?next={{ request.url | urlencode }}"
                 class="btn btn-outline-success btn-sm px-3"
                 >Подробнее</a
               >
@@ -124,7 +124,7 @@
             </p>
             <div class="mt-auto">
               <a
-                href="/product/{{ product.id }}"
+                href="/product/{{ product.id }}?next={{ request.url | urlencode }}"
                 class="btn btn-outline-success btn-sm px-3"
                 >Подробнее</a
               >
