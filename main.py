@@ -18,7 +18,7 @@ from flask import request
 from flask_restful import Api
 from data.api import user_resources
 from data.api import products_resources
-from requests import get, post, delete, put
+from requests import delete
 from flask import session
 from sqlalchemy.orm import joinedload
 
