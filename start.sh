@@ -1,5 +1,5 @@
 #!/bin/bash
-cd Mars_explorer
+cd WEB_project
 export PORT=5000
 
 if [ -f "requirements.txt" ]; then
