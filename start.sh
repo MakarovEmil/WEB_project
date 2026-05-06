@@ -1,6 +1,6 @@
 #!/bin/bash
 export PORT=5000
-
+cd WEB_project
 
 if [ -f "requirements.txt" ]; then
     echo "Installing dependencies..."
