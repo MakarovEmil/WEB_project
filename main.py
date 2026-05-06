@@ -58,6 +58,8 @@ def save_file(file, entity_id, upload_folder):
     if ext not in ALLOWED_EXTENSIONS:
         return None
 
+    os.makedirs(upload_folder, exist_ok=True)
+
     filename = f"{entity_id}.{ext}"
     file.save(os.path.join(upload_folder, filename))
     return f'{upload_folder}/{filename}'

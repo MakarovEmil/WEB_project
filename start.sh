@@ -1,11 +1,12 @@
 #!/bin/bash
 export PORT=5000
+cd WEB_project
 
 if [ -f "requirements.txt" ]; then
     echo "Installing dependencies..."
-    pip3 install -r requirements.txt || \
+    pip install -r requirements.txt || \
     echo "Pip install failed, but continuing..."
 fi
 
 echo "Starting application..."
-python3 main.py
+python main.py
