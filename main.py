@@ -62,7 +62,7 @@ def save_file(file, entity_id, upload_folder):
 
     filename = f"{entity_id}.{ext}"
     file.save(os.path.join(upload_folder, filename))
-    return f'{upload_folder}/{filename}'
+
 
 
 def delete_file(file_path, default_path=None):
